@@ -21,6 +21,8 @@ short ler_analogico_y (){
   return y;
 }
 void ler_analogico (short *x, short *y, bool v, bool h, bool manter){
+  short backup_x = *x;
+  short backup_y = *y;
   if (v && h){
     *x = ler_analogico_x();
     *x -= 512;
@@ -71,7 +73,10 @@ void ler_analogico (short *x, short *y, bool v, bool h, bool manter){
       *x = 0;
       *y = 0;
     }
-    else return;
+    else{
+      *x = backup_x;
+      *y = backup_y;
+    }
   }
   else if (v){
     *x = 0;
@@ -80,7 +85,7 @@ void ler_analogico (short *x, short *y, bool v, bool h, bool manter){
     if (*y > tempo) *y = 1;
     else if (*y < -tempo) *y = -1;
     else if (!manter) *y = 0;
-    else return;
+    else *y = backup_y;
   }
   else {
     *x = ler_analogico_x();
@@ -89,7 +94,7 @@ void ler_analogico (short *x, short *y, bool v, bool h, bool manter){
     if (*x > tempo) *x = 1;
     else if (*x < -tempo) *x = -1;
     else if (!manter) *x = 0;
-    else return;
+    else *x = backup_x;
   }
 }
 void andar_anaconda(short x, short y, struct anaconda* ana){
@@ -113,7 +118,7 @@ void andar_anaconda(short x, short y, struct anaconda* ana){
 
   delay(1000);
 }
-void zerarMatriz (bool matriz [][8][8]){
+void zerarMatriz (bool matriz [3][8][8]){
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 8; j++){
       for (int k = 0; k < 8; k++){
