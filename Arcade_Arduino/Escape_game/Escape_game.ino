@@ -7,12 +7,21 @@ bool campo[8][8];
 struct nave{
   byte velocidade_tiro;
   byte velocidade_reload;
+  byte pos_inicio_tiro;
 };
 
 struct nave* init_nave(){
   struct nave* nave = (struct nave*)malloc(sizeof(struct nave));
   nave->velocidade_tiro = 1000;
   nave->velocidade_reload = 1500;
+  nave->pos_inicio_tiro[0] = 5;
+  nave->pos_inicio_tiro[1] = 4;
+  nave->pos_inicio_tiro[2] = 6;
+  nave->pos_inicio_tiro[3] = 3;
+  nave->pos_inicio_tiro[4] = 3;
+  nave->pos_inicio_tiro[5] = 6;
+  nave->pos_inicio_tiro[6] = 4;
+  nave->pos_inicio_tiro[7] = 5;
   return nave;
 }
 
