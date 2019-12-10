@@ -3,12 +3,19 @@
 LedControl lc = LedControl(12, 11, 10, 4);
 
 struct Personagem{
-  byte pos_x;
-  byte pos_y;
-  byte vida;
+  int pos_x;
+  int pos_y;
+  int vida;
+};
+
+struct Campo{
+  int pos[8][8];
 };
 
 struct Personagem *soldado = new Personagem;
+struct Campo *espaco = new Campo;
+int campo_canhao[8][2] = {{6, 0}, {5, 1}, {7, 2},{4, 3}, {4, 4}, {7, 5}, {5, 6},{6, 7}};
+int armazena_canhao[8] = {};
 
 int ler_analogico_x (){
   int x;
@@ -84,6 +91,15 @@ void desenhaNave(){
   lc.setRow(2, 7, B11111100);
 }
 
+void zerarMatriz(){
+  for(byte i = 0; i < 8; i++){
+    for(byte j = 0; j < 8; j++){
+      espaco->pos[i][j] = 0;
+    }
+  }
+}
+
+
 void setup(){
   lc.shutdown(0,false);
   lc.shutdown(1,false);
@@ -96,13 +112,45 @@ void setup(){
   lc.setIntensity(3,0);
 
   desenhaNave();
+  zerarMatriz();
+  randomSeed(analogRead(3));
   
+  for(byte i = 0; i < 2; i++){
+      armazena_canhao[i] = seleciona_tiro_esquerda();
+    }
+    for(byte i = 0; i < 2; i++){
+      armazena_canhao[i] = seleciona_tiro_direita();
+    }
 
   Serial.begin(9600);
+
 }
 
-void loop(){
+int seleciona_tiro_esquerda(){
+  int x = random(0, 4);
+  while(armazena_canhao[x] != 1){
+    x = random(0, 4);
+  }
+  return x;
+}
+
+int seleciona_tiro_direita(){
+  int x = random(4, 8);
+  while(armazena_canhao[x] != 1){
+    x = random(4, 8);
+  }
+  return x;
+}
+
+void preenche_cachao(int pos){
+  armazena_canhao[pos] = 1;
+}
+
+void atirar(){
   
+}
+void loop(){
+  atirar();
 }
 
 
