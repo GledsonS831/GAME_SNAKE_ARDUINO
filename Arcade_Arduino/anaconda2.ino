@@ -46,6 +46,7 @@ void step_led (int* p1, int* p2, int backup_p1, int backup_p2, bool manter_anter
     *p2 = 0;
   }
 }
+//leitura dos valores do análogico
 void ler_analogico (int* x, int* y, bool vertical, bool horizontal, bool manter_anterior){
   int backup_x = *x;
   int backup_y = *y;
@@ -324,7 +325,7 @@ void setup() {
   init_lcd();
 
   pinMode(3, INPUT);
-  attachInterrupt(digitalPinToInterrupt(3), menu, RISING);
+  attachInterrupt(digitalPinToInterrupt(3), menu, RISING); //função que chama a interrupção
 
   Serial.begin(9600);
   randomSeed(analogRead(A3));
@@ -332,5 +333,4 @@ void setup() {
 
 void loop(){
   snake();
-  //Serial.println(digitalRead(3));
 }
