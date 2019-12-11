@@ -2,12 +2,44 @@
 
 LedControl lc = LedControl(12, 11, 10, 4);
 
+struct Node{
+    int val;
+    struct Node* p_node;
+};
+struct lista{
+    struct Node* p_node;
+    int lenght;
+};
+struct lista* criar_lista(){
+    struct lista* l = (struct lista*)malloc(sizeof(struct lista));
+    l->p_node = NULL;
+    l->lenght = 0;
+}
+void adiciona_lista(struct lista* l, int val){
+    struct Node* n = (struct Node*)malloc(sizeof(struct Node));
+    n->val = val;
+    if (l->p_node == NULL) l->p_node = n;
+    else{
+        struct Node* n1 = l->p_node;
+        while (n1->p_node != NULL){
+            n1 = n1->p_node;
+        }
+        n1->p_node = n;
+    }
+    ++l->lenght;
+}
+void remove_lista (struct lista* l){
+    struct Node* n = l->p_node;
+    l->p_node = n->p_node;
+    free(n);
+}
+
 int time = 0;
+
 struct dinossauro{
   int pos_atual[3];
-  byte pos_obstaculos[8];
-  byte val_obstaculos[8];
-  byte quant_obstaculos;
+  struct lista* pos_obstaculos;
+  struct lista* val_obstaculos;
   int pontos;
   int nivel;
 };
@@ -113,9 +145,9 @@ void generate_new_barreira (struct dinossauro* dino){
 
 void andar_barreiras (struct dinossauro* dino){
   for (int i = 0; i < dino->quant_obstaculos; i++){
-    lc.setColumn(lc->pos_obstaculos[i]/8, lc->pos_obstaculos[i]%8, 0b00000000);
-    ++lc->pos_obstaculos[i];
-    lc.setColumn(lc->pos_obstaculos[i]/8, lc->pos_obstaculos[i]%8, lc->val_obstaculos[i]);
+    lc.setColumn(dino->pos_obstaculos[i]/8, dino->pos_obstaculos[i]%8, 0b00000000);
+    ++dino->pos_obstaculos[i];
+    lc.setColumn(dino->pos_obstaculos[i]/8, dino->pos_obstaculos[i]%8, dino->val_obstaculos[i]);
   }
 }
 void paranaue (struct dinossauro *dino){
@@ -162,9 +194,10 @@ void next_level_dinossauro(struct dinossauro* dino){
 }
 struct dinossauro* init_dinossauro(){
   struct dinossauro* dino = (struct dinossauro*)malloc(sizeof(struct dinossauro));
+  dino->pos_obstaculos = (struct lista*) malloc (sizeof(struct lista));
+  dino->val_obstaculos = (struct lista*) malloc (sizeof(struct lista));
   dino->nivel = 0;
   dino->pontos = 0;
-  dino->quant_obstaculos = 0;
 }
 
 void dinossauro(){
@@ -200,6 +233,5 @@ void setup() {
   randomSeed(analogRead(A3));
 }
 void loop(){
-  //dinossauro();
-  lc.setColumn(0,1,255);
+  dinossauro();
 }
