@@ -1,8 +1,8 @@
-#include <LiquidCrystal_I2C.h>
+//#include <LiquidCrystal_I2C.h>
 #include "LedControl.h"
 
 LedControl lc = LedControl(12, 11, 10, 4);
-LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3, POSITIVE);
+//LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3, POSITIVE);
 
 struct anaconda{
   int pos_atual[3];
@@ -10,6 +10,7 @@ struct anaconda{
   int mapeamento[4][8][8];
   int pos_comida[3];
   int tamanho;
+  int pontos;
   int nivel;
 };
 int ler_analogico_x (){
@@ -96,10 +97,10 @@ void select_pos_food (struct anaconda* ana){
 void blink_food (struct anaconda* ana){
   bool estado = true;
 
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 2; i++){
     lc.setLed(ana->pos_comida[0], ana->pos_comida[1], ana->pos_comida[2], estado);
     estado = !estado;
-    delay (50);
+    delay (10);
   }
 }
 
@@ -144,37 +145,35 @@ void andar_bunda_anaconda (struct anaconda* ana){
 
 void andar_cabeca_anaconda (int x, int y, struct anaconda* ana){
 
-  if (x == 1 && y == 0) ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] = 1; // por condição de não ir ao lado contrario
+  if (x == 1 && y == 0) ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] = 1;
   else if (x == -1 && y == 0) ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] = 2;
   else if (x == 0 && y == 1) ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] = 3;
   else if (x == 0 && y == -1) ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] = 4;
+
   andar_anaconda(x, y, &ana->pos_atual[0], &ana->pos_atual[1], &ana->pos_atual[2]);
 
   lc.setLed(ana->pos_atual[0], ana->pos_atual[1], ana->pos_atual[2], true);
 
-  Serial.print(ana->pos_atual[0]);
-
-  //Serial.print(ana->pos_atual[1]);
-  //Serial.println(ana->pos_atual[2]);
 }
 
 bool colision_anaconda(int x, int y, struct anaconda* ana){//----------------------------------
   andar_cabeca_anaconda(x, y, ana);
   if (ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] == 5){
     ++ana->tamanho;
-  select_pos_food(ana);
+    if (ana->pontos < 10000) ana->pontos += 100;
+    select_pos_food(ana);
   }
   else{
-    andar_bunda_anaconda(ana);
-    if (ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] != 0){
+    if (ana->mapeamento[ana->pos_atual[0]][ana->pos_atual[1]][ana->pos_atual[2]] > 0){
       delay(1000);
-      Serial.print("LOOSSEERRRRR");
       return false;
     }
+    andar_bunda_anaconda(ana);
   }
 
   blink_food(ana);
-  delay(1);
+  if (ana->nivel * 50 == 150) delay(50);
+  else delay(200 - (ana->nivel * 10));
   return true;
 }
 void zerarMatriz (int matriz [4][8][8]){
@@ -208,6 +207,7 @@ struct anaconda* init_anaconda(){
   struct anaconda* ana = (struct anaconda*)malloc(sizeof(struct anaconda));
 
   ana->nivel = 0;
+  ana->pontos = 0;
   next_level_anaconda(ana);
   return ana;
 }
@@ -216,15 +216,19 @@ void snake (){
   int y = 0;
   struct anaconda* ana = init_anaconda();
 
-  do{
-    if (ana->tamanho == 9){
-      next_level_anaconda(ana);
-      x = 0;
-      y = 0;
-    }
-    ler_analogico(&x, &y, true, true, true);
-
-  }while(colision_anaconda(x, y, ana));
+  for (int i = 0; i < 3; i++){
+    do{
+      if (ana->tamanho == 8){
+        next_level_anaconda(ana);
+        x = 0;
+        y = 0;
+      }
+      ler_analogico(&x, &y, true, true, true);
+      Serial.println(ana->pontos);
+    }while(colision_anaconda(x, y, ana));
+    --ana->nivel;
+    ana->tamanho = 8;
+  }
 }
 
 void setup() {
@@ -241,8 +245,8 @@ void setup() {
   lc.setIntensity(2,0);
   lc.setIntensity(3,0);
 
-  lcd.begin (16,2);
-  lcd.setBacklight(HIGH);
+  //lcd.begin (16,2);
+  //lcd.setBacklight(HIGH);
 
   // limpa o display:
   //-----------------
@@ -253,12 +257,13 @@ void setup() {
 }
 void loop(){
   snake();
-
+  /*
   lcd.setCursor(0,0);
   lcd.print("--nome do jogo--");
   lcd.setCursor(0,1);
   lcd.print("R -----");
   lcd.setCursor(9, 1);
   lcd.print("P -----");
+  */
 
 }
