@@ -8,12 +8,10 @@ struct Node{
 };
 struct lista{
     struct Node* p_node;
-    int lenght;
 };
 struct lista* criar_lista(){
     struct lista* l = (struct lista*)malloc(sizeof(struct lista));
     l->p_node = NULL;
-    l->lenght = 0;
 }
 void adiciona_lista(struct lista* l, int val){
     struct Node* n = (struct Node*)malloc(sizeof(struct Node));
@@ -26,7 +24,6 @@ void adiciona_lista(struct lista* l, int val){
         }
         n1->p_node = n;
     }
-    ++l->lenght;
 }
 void remove_lista (struct lista* l){
     struct Node* n = l->p_node;
@@ -40,6 +37,7 @@ struct dinossauro{
   int pos_atual[3];
   struct lista* pos_obstaculos;
   struct lista* val_obstaculos;
+  int quant_obstaculos;
   int pontos;
   int nivel;
 };
@@ -131,23 +129,38 @@ void generate_new_barreira (struct dinossauro* dino){
   time = random(4,8);
 
   byte x;
-  dino->pos_obstaculos[dino->quant_obstaculos] = 0;
+  adiciona_lista(dino->pos_obstaculos, 0);
 
   if (random(2)){
-    dino->val_obstaculos[dino->quant_obstaculos] = 0b00000010;
+    adiciona_lista(dino->val_obstaculos, 64); //0b01000000
   }
   else{
-    byte walls[] = {0b00000001, 0b00000011, 0b00000111};
-    dino->val_obstaculos[dino->quant_obstaculos] = walls[random(3)];
+    byte walls[] = {128, 192, 224};  //0b10000000, 0b11000000, 0b11100000
+    adiciona_lista(dino->val_obstaculos, walls[random(3)]);
   }
   ++dino -> quant_obstaculos;
 }
 
+int conversor (int v){
+  if (v == 0) return 3;
+  else if (v == 1) return 2;
+  return 1;
+}
 void andar_barreiras (struct dinossauro* dino){
+  struct Node* pos = dino->pos_obstaculos->p_node;
+  struct Node* val = dino->val_obstaculos->p_node;
+
   for (int i = 0; i < dino->quant_obstaculos; i++){
-    lc.setColumn(dino->pos_obstaculos[i]/8, dino->pos_obstaculos[i]%8, 0b00000000);
-    ++dino->pos_obstaculos[i];
-    lc.setColumn(dino->pos_obstaculos[i]/8, dino->pos_obstaculos[i]%8, dino->val_obstaculos[i]);
+    lc.setColumn(conversor(pos->val/8), pos->val%8, 0); //0b00000000
+    ++pos->val;
+    lc.setColumn(conversor(pos->val/8), pos->val%8, val->val);
+
+    pos = pos->p_node;
+    val = val->p_node;
+  }
+  if (dino->pos_obstaculos->p_node->val == 23){
+    remove_lista(dino->pos_obstaculos);
+    remove_lista(dino->val_obstaculos);
   }
 }
 void paranaue (struct dinossauro *dino){
@@ -160,12 +173,15 @@ bool colision_dinossauro(int x, int y, struct dinossauro* dino){
   if (x == 0 && y == 1){
     dino->pos_atual[1] = -1;
     lc.setLed(2, 1, 4, false);
+    //paranaue(dino);
+    delay(150);
   }
   else if (x ==0 && y == -1){
       do{
         lc.setLed(2, dino->pos_atual[1], 4, false);
         ++dino->pos_atual[1];
         lc.setLed(2, dino->pos_atual[1]+1, 4, true);
+        //paranaue(dino);
         delay(150);
       }while(dino->pos_atual[1] < 4);
 
@@ -173,6 +189,8 @@ bool colision_dinossauro(int x, int y, struct dinossauro* dino){
         lc.setLed(2, dino->pos_atual[1]+1, 4, false);
         --dino->pos_atual[1];
         lc.setLed(2, dino->pos_atual[1], 4, true);
+        //paranaue(dino);
+        lc.setColumn(0,0,255);
         delay(150);
       }
   }
@@ -180,6 +198,8 @@ bool colision_dinossauro(int x, int y, struct dinossauro* dino){
     dino->pos_atual[1] = 0;
     lc.setLed(2, 1, 4, true);
     lc.setLed(2, 0, 4, true);
+    //paranaue(dino);
+    delay(150);
   }
   return true;
 }
@@ -198,12 +218,14 @@ struct dinossauro* init_dinossauro(){
   dino->val_obstaculos = (struct lista*) malloc (sizeof(struct lista));
   dino->nivel = 0;
   dino->pontos = 0;
+  dino->quant_obstaculos = 0;
+  next_level_dinossauro(dino);
 }
 
 void dinossauro(){
   struct dinossauro* dino = init_dinossauro();
 
-  for (int i = 0; i < 3; i ++){
+  for (int i = 0; i < 1; i ++){
     int x = 0;
     int y = 0;
 
@@ -234,4 +256,5 @@ void setup() {
 }
 void loop(){
   dinossauro();
+  lc.setColumn(0, 0, 0b10000000);
 }
